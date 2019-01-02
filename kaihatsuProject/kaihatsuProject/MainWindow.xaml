@@ -6,21 +6,15 @@
         xmlns:local="clr-namespace:kaihatsuProject"
         mc:Ignorable="d"
         Title="MainWindow" Height="400" Width="900"
-        Closing="Window_Closing"
-        Closed="Window_Closed">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="650*"/>
-            <ColumnDefinition Width="250*"/>
-        </Grid.ColumnDefinitions>
-        <Canvas Name="myCanvas" Margin="0,0,300,-0.333" Panel.ZIndex="3" Grid.ColumnSpan="2">
-            <Image Name="videoImage" Height="350" Canvas.Left="5" Canvas.Bottom="10" Width="600"/>
-            <Image x:Name="Image1" Height="10" Canvas.Left="{Binding Path=X}" Canvas.Top="{Binding Path=Y}" Width="10" Source="images/right.png"/>
-
+        
+        Closing="Window_Closing">
+    <Canvas>
+        <Canvas Name="myCanvas" HorizontalAlignment="Left" Panel.ZIndex="1" Width="100" Height="100" Background="White">
+            <Image Name="videoImage" Margin="10,10,10,10" />
+            <Image Name="gazeImage" Height="10" Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" Width="10" Source="images/right.png"/>
         </Canvas>
 
-        <Canvas Name="myCanvas2" Margin="10,0,0.333,-0.333" Grid.Column="1">
-            <ComboBox Name="comboBox1" Canvas.Left="0" Canvas.Top="123" Width="120" RenderTransformOrigin="0.59,-0.378"/>
+        <Canvas Name="myCanvas2" Panel.ZIndex="2" Width="250" Height="800" Background="White" Canvas.Right="0">
             <TextBox Name="text1" Height="20" Canvas.Left="60" TextWrapping="Wrap" Text="{Binding Path=Kx}" Canvas.Top="35" Width="40"/>
             <TextBox Name="text2" Height="20" Canvas.Left="60" TextWrapping="Wrap" Text="{Binding Path=Ky}" Canvas.Top="75" Width="40"/>
             <Label Content="x方向係数" Height="30" Canvas.Left="0" Canvas.Top="30"/>
@@ -31,13 +25,17 @@
             <Label Content="x方向原点" Height="30" Canvas.Left="120" Canvas.Top="30"/>
             <Label Content="y方向原点" Height="30" Canvas.Left="120" Canvas.Top="70"/>
 
+            <ComboBox Name="comboBox1" Canvas.Left="0" Canvas.Top="123" Width="120"/>
             <Button Click ="message_Click" Content="カメラ起動" Canvas.Left="150" Canvas.Top="123" Width="75"/>
             <Button Click="swichApp_Click" Content="連携アプリ起動/終了" Canvas.Left="0" Canvas.Top="217" Width="120"/>
-
-            <Label Name="testLabel" Content="{Binding Path=ConnectStateLabel}" Canvas.Left="0" Canvas.Top="185"/>
-            <Label Name="messageLabel" Content="{Binding Path=MessageLabel}" Canvas.Left="0" Canvas.Top="258"/>
+            
+            <Label Name="testLabel" Content="{Binding ConnectStateLabel}" Canvas.Left="0" Canvas.Top="185" Background="Pink"/>
+            <Label Name="messageLabel" Content="{Binding MessageLabel}" Canvas.Left="0" Canvas.Top="258" Background="Pink"/>
+            <Label Name="gazeStateLabel" Content="{Binding GazeStateLabel}" Canvas.Left="60" Canvas.Top="290" Foreground="Red" FontSize="18" Background="Pink"/>
+            <Button Click="aaa_CLick" Content="カメラ再取得" Canvas.Left="150" Canvas.Top="217" Width="75"/>
+            <Button Click="WriteToCSV_CLick" Content="csv出力:停止中" Name="WriteToCSVButton" Canvas.Top="317" Width="120"/>
 
         </Canvas>
 
-    </Grid>
+    </Canvas>
 </Window>

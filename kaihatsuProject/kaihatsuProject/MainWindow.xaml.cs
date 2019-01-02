@@ -30,39 +30,50 @@ namespace kaihatsuProject
 
     public partial class MainWindow : System.Windows.Window//
     {//
-        NamedPipeCommunication pipe;
+        public NamedPipeCommunication pipe;
         ExternalAppManager myManager;
         GazedPoint gaze;
 
         VideoCaptureDevice webcam;
-        private FilterInfoCollection videoDevices;
+        FilterInfoCollection videoDevices;
+
+        SerialCommunication mySerial;
+        
 
         public MainWindow()
-        {
-            InitializeComponent();
+        {//長い  けどスッキリさせるのが難しい...
+            //ログ出力のための設定
+            StreamWriter streamWriter = new StreamWriter("debug.log", false);//既にファイルがあっても追加ではなく上書き
+            streamWriter.AutoFlush = true;//これやっとかないとバッファに貯めこまれてアプリ終了まで書き込まれなかったりする
+            Console.SetOut(streamWriter);
+            Console.WriteLine("ウィンドウコンストラクタ");
 
-            this.DataContext = this;            
+            InitializeComponent();//これは必須
+            
 
             pipe = new NamedPipeCommunication("mypipe");
-            pipe.getMessageEvent += test;
-            myCanvas2.DataContext = pipe;//パイプコンストラクト前に置くと機能しないしエラーも出ない
+            pipe.MessageReceived += test;//メッセージ受信時の処理
             pipe.WaitConnectionAsync();
+            testLabel.DataContext = pipe;//パイプコンストラクト前に置くと機能しないしエラーも出ない
+            messageLabel.DataContext = pipe;
 
             myManager = new ExternalAppManager();
-            LoadSettings.LoadFromTextTest<ExternalAppManager>("settings.txt", myManager);
+            LoadSettings.LoadFromTextTest<ExternalAppManager>("settings.txt", myManager);//テキストからロード
 
             gaze = new GazedPoint(300, 200);
-            Image1.DataContext = gaze;
-            myCanvas.DataContext = gaze;
+            gaze.InterestDetected += OnInterestDetected;
+            gazeImage.DataContext = gaze;
             text1.DataContext = gaze;
             text2.DataContext = gaze;
             text3.DataContext = gaze;
             text4.DataContext = gaze;
+            gazeStateLabel.DataContext = gaze;
+            LoadSettings.LoadFromTextTest<TimeLinePointDatas>("settings.txt", gaze.pointDatas);
 
             videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             comboBox1.Items.Clear();
             if (videoDevices.Count == 0)
-                throw new ApplicationException();
+                throw new ApplicationException();            
 
 
             //DeviceExist = true;
@@ -70,16 +81,19 @@ namespace kaihatsuProject
             {
                 comboBox1.Items.Add(device.Name);
             }
-            comboBox1.SelectedIndex = 0; //make dafault to first cam            
+            comboBox1.SelectedIndex = 0; //make dafault to first cam
 
+            mySerial = new SerialCommunication("a", 1);//test
+            LoadSettings.LoadFromTextTest<SerialCommunication>("settings.txt", mySerial);
+            mySerial.Open();
+
+            Console.WriteLine("ウィンドウコンストラクタ終了");
         }
 
-        private void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
-        {
-            //Bitmap img = (Bitmap)eventArgs.Frame.Clone();
-            //var hbitmap = img.GetHbitmap();
-            //videoImage.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(hbitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+        //以下イベントハンドラ//////////////////////////////////////////////////////////////////////////////////////////////
 
+        private void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {//webカメラが新しいキャプチャを受け取ったときに発火
             Dispatcher.Invoke(new Action(() => {
                 using (var stream = new MemoryStream())
                 using (Bitmap img = (Bitmap)eventArgs.Frame.Clone())
@@ -90,30 +104,22 @@ namespace kaihatsuProject
             }));            
         }
 
-        private void Window_MouseMove(object sender, MouseEventArgs e)
-        {
-            //Point point = e.GetPosition(this);
-            //Canvas.SetLeft(Image1, point.X);
-            //Canvas.SetTop(Image1, point.Y            
-        }
-
         private void message_Click(object sender, RoutedEventArgs e)
         {//カメラ起動
             //MessageBox.Show("メッセージボックス");
             webcam = new VideoCaptureDevice(videoDevices[comboBox1.SelectedIndex].MonikerString);
             webcam.NewFrame += video_NewFrame;
-            webcam.Start();            
+            webcam.Start();
         }
 
         private void swichApp_Click(object sender, RoutedEventArgs e)
-        {
+        {//連携アプリ起動/終了
             if (myManager.IsAlive) { myManager.Close(); }
             else { myManager.Start(); }
         }
 
         void test(object sender, MyEventArgs e)
         {//角度をパイプから受け取った時に発火する
-            //MessageBox.Show(e.message);
             try
             {
                 string[] str = e.message.Split(',');
@@ -122,27 +128,55 @@ namespace kaihatsuProject
             catch(Exception ex)
             {
                 gaze.ReculculateXY(0, 0);
-            }            
-                       
-        }        
+            }
+        }
+        
+        void OnInterestDetected(object sender, MyEventArgs e)
+        {//興味推定時の処理, シリアル通信で振動デバイスに通知する処理を書く
+            //Console.WriteLine("視線検出 テスト");
+            mySerial.Write();
+        }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void aaa_CLick(object sender, RoutedEventArgs e)
+        {//カメラ再取得, デモの動画撮るのに必要だっただけで今後消える
+            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            comboBox1.Items.Clear();
+            if (videoDevices.Count == 0)
+                throw new ApplicationException();
+            foreach (FilterInfo device in videoDevices)
+            {
+                comboBox1.Items.Add(device.Name);
+            }
+            comboBox1.SelectedIndex = 0; //make dafault to first cam
+        }
+
+        private void WriteToCSV_CLick(object sender, RoutedEventArgs e)
+        {//CSV出力モードにする/出力止める
+            if (!gaze.IsWriting)
+            {
+                gaze.IsWriting = true;
+                WriteToCSVButton.Content = "csv出力:出力中";
+            }
+            else
+            {
+                gaze.IsWriting = false;
+                WriteToCSVButton.Content = "csv出力:停止中";
+            }            
+        }
+        
+
+        private void Window_Closing(object sender, EventArgs e)
         {//終了処理
-            //pipe.Close();
+            mySerial.Close();
             if (myManager.IsAlive)
             {
                 myManager.Close();
             }
-
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            //webcam.Stop();
             webcam.NewFrame -= video_NewFrame;
             webcam.SignalToStop();
             webcam = null;
-        }        
+        }
+
     }
 }
 

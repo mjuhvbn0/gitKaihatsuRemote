@@ -1,3 +1,0 @@
-path  C:\Users\satoru\OpenFace-master\Release\FaceLandmarkVid.exe
-path aaa\ClientTest.exe
-commandLineArg aaa

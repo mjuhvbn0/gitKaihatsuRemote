@@ -17,7 +17,7 @@ namespace kaihatsuProject
 
         public MyEventArgs() { message = ""; }
     }
-
+    public delegate void MyEventHandler(object sender, MyEventArgs e);
 
     public class NamedPipeCommunication : INotifyPropertyChanged
     {//名前付きパイプによる通信用のクラス, 今とりあえずで一度waitAsyncするとあと勝手に読み待ち入って死んだら復活接続待ちするようになってる
@@ -28,7 +28,7 @@ namespace kaihatsuProject
         {//死んだら生き返らないがRemakeで作り直せる
             notBornYet, born, waitingConnection, availavle, dead
         }
-        public delegate void MyEventHandler(object sender, MyEventArgs e);//通信を受け取ったときに発火するイベントの型
+        //public delegate void MyEventHandler(object sender, MyEventArgs e);//通信を受け取ったときに発火するイベントの型
 
         private NamedPipeServerStream pipeS;//名前付きパイプ本体(サーバー側)
         private WaitDelegate waitDelegate;//BeginInvokeを使いたかっただけ, クライアント接続待ち
@@ -40,7 +40,7 @@ namespace kaihatsuProject
 
         private ConnectState connectState;//enum, 接続状態
 
-        public MyEventHandler getMessageEvent;//パイプから通信でメッセージ受け取ったときに発火するイベント
+        public event MyEventHandler MessageReceived;//パイプから通信でメッセージ受け取ったときに発火するイベント
 
         public bool IsAvailable
         {//接続中のみtrue
@@ -75,11 +75,11 @@ namespace kaihatsuProject
                 messageStr = value;
                 RaisePropertyChanged("MessageLabel");//UIに更新通知
 
-                if (getMessageEvent != null)
+                if (MessageReceived != null)
                 {//メッセージ取得時設定されたイベントを発火, 引数eのメンバにメッセージ内容
                     MyEventArgs e = new MyEventArgs();
                     e.message = value;
-                    getMessageEvent(this, e);
+                    MessageReceived(this, e);
                 }
 
                 //ここで切断されてなければ次の読み待ちに入る(ループ)
@@ -157,6 +157,7 @@ namespace kaihatsuProject
             if (connectState == ConnectState.born)
             {
                 connectState = ConnectState.waitingConnection;
+                Console.WriteLine("名前付きパイプ：接続待ち開始");
                 waitDelegate.BeginInvoke(null, null);
             }            
         }
@@ -174,6 +175,7 @@ namespace kaihatsuProject
             }
 
             connectState = ConnectState.availavle;
+            Console.WriteLine("名前付きパイプ：接続成功");
             ConnectStateLabel = "接続成功";        
         }
 
@@ -196,8 +198,8 @@ namespace kaihatsuProject
 
             Array.Resize(ref buffer, n);
             
-            MessageLabel = System.Text.Encoding.ASCII.GetString(buffer);                        
-            //readDelegate.BeginInvoke(null, null);
+            MessageLabel = System.Text.Encoding.ASCII.GetString(buffer);
+            //readDelegate.BeginInvoke(null, null);//test
             //ここで呼ぶのはうまくいかない, 何故かは分からん  
             //スレッドが違うからではないか?
         }

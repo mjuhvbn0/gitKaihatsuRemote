@@ -1,3 +1,30 @@
-path  C:\Users\satoru\OpenFace-master\Release\FaceLandmarkVid.exe
+//コメントアウトは現在//によるコメントアウトのみ対応
 
-commandLineArg aaa
+
+//連携アプリのパス<string>
+path = aaa\ClientTest.exe
+//path  aaa\OpenFace\FaceLandmarkVid.exe
+
+//連携アプリのコマンドライン引数<string>
+commandLineArg = aaa
+
+
+
+//興味推定の時間閾値<int>(ミリ秒)
+timeThres = 2500
+
+//興味推定の角度閾値<double>(度)
+distanceThres = 2.0
+
+
+
+//シリアル通信で開くポート名<string>
+portName = COM9
+
+//ボーレート<string>
+baudRate = 9600
+
+//興味検知時にシリアル通信に書き込まれる内容<string>
+strToSend = a
+
+

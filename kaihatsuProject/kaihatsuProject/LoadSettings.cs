@@ -8,10 +8,13 @@ using System.IO;
 
 namespace kaihatsuProject
 {
+    /// <summary>
+    /// LoadSettings.LoadFromTextTest(string ファイル名, T obj)関数を利用するクラスは継承している必要がある
+    /// </summary>
     interface IMySetter//こいつを持ってるやつをLoadSettingのジェネリック関数で扱える
     {
-        void SetMember(List<string> memNames, List<string> memValues);
-        void GetMember(List<string> memNames, List<string> memValues);//まだなんも書いてない
+        void LoadMember(List<string> memNames, List<string> memValues);
+        void SaveMember(List<string> memNames, List<string> memValues);//まだなんも書いてない
     }
 
 
@@ -20,35 +23,40 @@ namespace kaihatsuProject
         public static void LoadFromTextTest<T>(string fileName, T obj)//とりあえず本当に暫定
             where T : IMySetter
         {
-            StreamReader reader = new StreamReader(fileName);
             string buffer;
             string nameBuf = "";
             string valueBuf = "";
             List<string> memNames = new List<string>();
             List<string> memValues = new List<string>();
 
-            while (false == reader.EndOfStream)
+            using (StreamReader reader = new StreamReader(fileName))//usingいる?
             {
-                buffer = reader.ReadLine();
-                getNameAndValue(buffer, ref nameBuf, ref valueBuf);
-
-                if ("" != nameBuf && "" != valueBuf)
+                while (false == reader.EndOfStream)
                 {
-                    memNames.Add(nameBuf);
-                    memValues.Add(valueBuf);
+                    buffer = reader.ReadLine();
+
+                    int n = buffer.IndexOf("//");//コメントアウト機能「//」
+                    if (-1 != n){//を見つけたら//以降を削除する
+                        buffer = buffer.Substring(0, n);
+                    }
+
+                    getNameAndValue(buffer, ref nameBuf, ref valueBuf);
+
+                    if ("" != nameBuf && "" != valueBuf)
+                    {
+                        memNames.Add(nameBuf);
+                        memValues.Add(valueBuf);
+                    }
                 }
-            }
-
-            obj.SetMember(memNames, memValues);
-
-
+            }            
+            obj.LoadMember(memNames, memValues);
         }
 
         
         private static bool CharCanBeSkipped(char c)
         {
-            if (' ' == c || '\t' == c || '　' == c || '\"' == c || '=' == c)
-            {//半角全角スペースとタブと"と=なら読み飛ばす
+            if (' ' == c || '\t' == c || '　' == c || '\"' == c || '=' == c || ';' == c)
+            {//半角全角スペースとタブと"と=と;なら読み飛ばす
                 return true;
             }
             else
@@ -57,8 +65,12 @@ namespace kaihatsuProject
             }
         }
 
+
+        /// <summary>
+        /// 区切り文字で区切って文字列を取り出しメンバ名とメンバの値として返す
+        /// </summary>
         private static void getNameAndValue(string buffer, ref string memName, ref string memValue)
-        {
+        {//区切り文字で区切って文字列を取り出しメンバ名とメンバの値として返す
             memName = "";
             memValue = "";
 
@@ -104,6 +116,11 @@ namespace kaihatsuProject
                     {
                         reading = true;
                         str = "" + buffer[i];
+
+                        if (i == buffer.Length - 1)//この1文字でbufferが終わるとき
+                        {
+                            memValue = "" + buffer[i];
+                        }
                     }
                 }
             }
