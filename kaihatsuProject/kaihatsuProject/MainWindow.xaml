@@ -11,7 +11,9 @@
     <Canvas>
         <Canvas Name="myCanvas" HorizontalAlignment="Left" Panel.ZIndex="1" Width="100" Height="100" Background="White">
             <Image Name="videoImage" Margin="10,10,10,10" />
+            <Image Name="HeatMapa" Width="600" Height="350"/>
             <Image Name="gazeImage" Height="10" Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}" Width="10" Source="images/right.png"/>
+            <Button Name="calibrateButton" Opacity="0.2" Canvas.Left="0" Canvas.Top="0" Width="900" Height="400"/>
         </Canvas>
 
         <Canvas Name="myCanvas2" Panel.ZIndex="2" Width="250" Height="800" Background="White" Canvas.Right="0">

@@ -101,7 +101,7 @@ namespace kaihatsuProject
                     img.Save(stream, ImageFormat.Bmp);
                     videoImage.Source = BitmapFrame.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                 }
-            }));            
+            }));
         }
 
         private void message_Click(object sender, RoutedEventArgs e)
@@ -129,6 +129,13 @@ namespace kaihatsuProject
             {
                 gaze.ReculculateXY(0, 0);
             }
+            //Console.WriteLine("ヒートマップ開始");
+            /*
+            Dispatcher.Invoke(new Action(() => {
+                HeatMapa.Source = gaze.getHeatMap();
+            }));
+            */
+            //Console.WriteLine("ヒートマップ終了");
         }
         
         void OnInterestDetected(object sender, MyEventArgs e)
@@ -163,7 +170,11 @@ namespace kaihatsuProject
                 WriteToCSVButton.Content = "csv出力:停止中";
             }            
         }
-        
+
+        private void Calibrate_CLick(object sender, RoutedEventArgs e)
+        {//
+            
+        }
 
         private void Window_Closing(object sender, EventArgs e)
         {//終了処理

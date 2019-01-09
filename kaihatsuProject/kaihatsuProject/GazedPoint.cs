@@ -29,6 +29,8 @@ namespace kaihatsuProject
             myWatch = new Stopwatch();
             myWatch.Start();
         }
+
+        //public static long GetCurrentTime() { return myWatch.ElapsedMilliseconds; }
     }
 
     class TimeLinePointDatas : IMySetter
@@ -39,6 +41,7 @@ namespace kaihatsuProject
         private long baseTime;//この時間から閾値の時間まで見続けてたら興味あり判定
         public bool StillGazingAtOnePoint{ get; private set; }//興味検知の後から他に視線が移動するまでの間true
         public bool InterestDetected { get; private set; }//興味検知がなされた瞬間だけtrue(振動モジュールで通知出すとき使う)
+        
 
         public TimeLinePointDatas()
         {
@@ -84,6 +87,7 @@ namespace kaihatsuProject
             {//要素数が無限に大きくなってメモリを圧迫しないよう適当なとこで消す
                 PointDatas.RemoveFirst();
             }
+            
         }
 
         public void WriteToCSV(string fileName)//csv出力する
@@ -101,7 +105,7 @@ namespace kaihatsuProject
             File.AppendAllText(fileName, str);
         }
 
-
+        public LinkedList<PointData> GetPointDatas() { return PointDatas; }
 
         public void LoadMember(List<string> memNames, List<string> memValues)
         {//メモ帳からロードするLoadSettingsの関数にこのクラスをぶち込むために必要なインターフェース(暫定版)
@@ -232,7 +236,10 @@ namespace kaihatsuProject
             }
         }
 
-
+        public System.Windows.Media.Imaging.BitmapSource getHeatMap()//HeatMapのbitmapを作成させて吐かせる
+        {
+            return HeatMap.GenerateHeatMap(pointDatas.GetPointDatas());
+        }
 
         //以下がviewmodelのクラスには必要らしい
         public event PropertyChangedEventHandler PropertyChanged;

@@ -91,6 +91,7 @@
     </ApplicationDefinition>
     <Compile Include="ExternalAppManager.cs" />
     <Compile Include="GazedPoint.cs" />
+    <Compile Include="HEATMAP3.CS" />
     <Compile Include="LoadSettings.cs" />
     <Compile Include="SerialCommunication.cs" />
     <Page Include="MainWindow.xaml">
